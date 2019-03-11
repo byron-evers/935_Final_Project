@@ -22,7 +22,7 @@ Current UAV pipeline includes stitching photos and extracting plot level reflect
 **Step: 1 Download data from the KSU Mesonet**
 - Go to http://mesonet.k-state.edu/weather/historical/
 - Select location of intrest. For this projcet I have started with the Scandia weather station.
-- Enter the range of dates you would like to download. However, maximum range is 366 days. For this project I have dowloaded days for the 2017-2018 winter wheat growing season. I used dates ranging from 2017-09-01 to 2018-07-15. This is beyond the scope of the growing season but the defined function will only capture the dates within the growing season. 
+- Enter the range of dates you would like to download. However, maximum range is 366 days. For this project I have dowloaded days for the 2016-2017 winter wheat growing season. I used dates ranging from 2016-09-01 to 2017-07-15. This is beyond the scope of the growing season but the defined function will only capture the dates within the growing season. 
 - Export the data as a CSV to your working directory 
 
 
@@ -36,18 +36,54 @@ import glob
 import datetime as dt
 from datetime import datetime
 import matplotlib.pyplot as plt
+#import matplotlib.pyplot as plt
+%matplotlib inline
 ```
 
-**Step3: import data and review format**
+**Step3: Review equation and evaluate minimum needed variables.**
 - Review equation and evaluate minimum needed variables.    
-**Growing Degree Days GDD**:
-$$GDD = (\frac{Tmax+Tmin}{2})-Tbase$$
+**Growing Degree Days (GDD)**:
+$$GDD = \sum_{Planting}^{Harvest}(\frac{Tmax+Tmin}{2})-Tbase$$
+**Physological Days (Pdays)**:
+$$Pdays = \frac{1}{24}(5*P(T_1)+8*P(T_2)+8*P(T_3)+3*P(T_4))$$
+**Where**
+$$T_1=Tmin$$
+
+$$$$
+
+$$T_2=\frac{(2*Tmin)+Tmax}{3}$$
+
+$$$$
+
+$$T_3=\frac{Tmin+(2*Tmax)}{3}$$
+
+$$$$
+
+$$T_4=Tmax$$
+
+**And P is**
+$$P=0$$   $$when T <=Tmin$$
+
+$$$$
+
+$$P=k*(1-\frac{(T-Topt)2}{(Topt-Tmin)2})$$ $$when Tmin <= T <=Topt$$
+
+$$$$
+
+$$P=k*(1-\frac{(T-Topt)2}{(Tmax-Topt)2})$$ $$when Topt <= T <=Tmax$$
+
+$$$$
+
+$$P=0$$   $$when T >=Tmax$$
+
+
+**Step4: Import data and review format**
 - Set directory name and file name
 
 
 ```python
 dirname = '/Users/bevers/Desktop/Coding/Project_Update/'
-filename = '2018_growing_season.txt'
+filename = '2017_growing_season.txt'
 ```
 
 - Import file and review the first 10 entries to check content and format
@@ -55,235 +91,12 @@ filename = '2018_growing_season.txt'
 
 ```python
 df = pd.read_csv(dirname + filename)
-df.head(10)
+#df.head(10)
 ```
 
+<img src="mesonetimport.png" alt="sketch_image" width="500"/>
 
-
-
-<div>
-<style scoped>
-    .dataframe tbody tr th:only-of-type {
-        vertical-align: middle;
-    }
-
-    .dataframe tbody tr th {
-        vertical-align: top;
-    }
-
-    .dataframe thead th {
-        text-align: right;
-    }
-</style>
-<table border="1" class="dataframe">
-  <thead>
-    <tr style="text-align: right;">
-      <th></th>
-      <th>Timestamp</th>
-      <th>Station</th>
-      <th>AirTemperature</th>
-      <th>AirTemperature.1</th>
-      <th>RelativeHumidity</th>
-      <th>Precipitation</th>
-      <th>WindSpeed2m</th>
-      <th>WindSpeed2m.1</th>
-      <th>SoilTemperature5cm</th>
-      <th>SoilTemperature5cm.1</th>
-      <th>SoilTemperature10cm</th>
-      <th>SoilTemperature10cm.1</th>
-      <th>SolarRadiation</th>
-      <th>ETo</th>
-      <th>ETo.1</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <th>0</th>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>max</td>
-      <td>min</td>
-      <td>avg</td>
-      <td>total</td>
-      <td>avg</td>
-      <td>max</td>
-      <td>max</td>
-      <td>min</td>
-      <td>max</td>
-      <td>min</td>
-      <td>total</td>
-      <td>grass</td>
-      <td>alfalfa</td>
-    </tr>
-    <tr>
-      <th>1</th>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>°C</td>
-      <td>°C</td>
-      <td>%</td>
-      <td>mm</td>
-      <td>m/s</td>
-      <td>m/s</td>
-      <td>°C</td>
-      <td>°C</td>
-      <td>°C</td>
-      <td>°C</td>
-      <td>MJ/m²</td>
-      <td>mm</td>
-      <td>mm</td>
-    </tr>
-    <tr>
-      <th>2</th>
-      <td>2017-09-01</td>
-      <td>Scandia</td>
-      <td>23.8</td>
-      <td>15.4</td>
-      <td>77.6</td>
-      <td>0</td>
-      <td>1.3</td>
-      <td>5.7</td>
-      <td>24.6</td>
-      <td>20.4</td>
-      <td>24.2</td>
-      <td>20.9</td>
-      <td>8.3</td>
-      <td>2.17</td>
-      <td>2.68</td>
-    </tr>
-    <tr>
-      <th>3</th>
-      <td>2017-09-02</td>
-      <td>Scandia</td>
-      <td>30.4</td>
-      <td>13.4</td>
-      <td>77.2</td>
-      <td>0</td>
-      <td>1.1</td>
-      <td>5.8</td>
-      <td>31.3</td>
-      <td>18.8</td>
-      <td>29.8</td>
-      <td>19.2</td>
-      <td>21.6</td>
-      <td>4.21</td>
-      <td>4.99</td>
-    </tr>
-    <tr>
-      <th>4</th>
-      <td>2017-09-03</td>
-      <td>Scandia</td>
-      <td>33.9</td>
-      <td>13.3</td>
-      <td>68.3</td>
-      <td>0</td>
-      <td>1.5</td>
-      <td>5.3</td>
-      <td>31.9</td>
-      <td>19.6</td>
-      <td>30.5</td>
-      <td>20.3</td>
-      <td>21.8</td>
-      <td>5.02</td>
-      <td>6.47</td>
-    </tr>
-    <tr>
-      <th>5</th>
-      <td>2017-09-04</td>
-      <td>Scandia</td>
-      <td>27.7</td>
-      <td>14.5</td>
-      <td>68.0</td>
-      <td>0</td>
-      <td>1.9</td>
-      <td>7.6</td>
-      <td>29.0</td>
-      <td>20.9</td>
-      <td>28.2</td>
-      <td>21.7</td>
-      <td>19.1</td>
-      <td>4.37</td>
-      <td>5.72</td>
-    </tr>
-    <tr>
-      <th>6</th>
-      <td>2017-09-05</td>
-      <td>Scandia</td>
-      <td>22.2</td>
-      <td>6.4</td>
-      <td>61.4</td>
-      <td>0</td>
-      <td>1.7</td>
-      <td>7.9</td>
-      <td>28.5</td>
-      <td>17.2</td>
-      <td>26.9</td>
-      <td>18.2</td>
-      <td>23.7</td>
-      <td>4.06</td>
-      <td>5.24</td>
-    </tr>
-    <tr>
-      <th>7</th>
-      <td>2017-09-06</td>
-      <td>Scandia</td>
-      <td>23.7</td>
-      <td>4.7</td>
-      <td>62.8</td>
-      <td>0</td>
-      <td>1.1</td>
-      <td>6.1</td>
-      <td>28.9</td>
-      <td>15.5</td>
-      <td>27.0</td>
-      <td>16.1</td>
-      <td>24.0</td>
-      <td>3.82</td>
-      <td>4.75</td>
-    </tr>
-    <tr>
-      <th>8</th>
-      <td>2017-09-07</td>
-      <td>Scandia</td>
-      <td>29.3</td>
-      <td>5.4</td>
-      <td>56.1</td>
-      <td>0</td>
-      <td>1.3</td>
-      <td>4.9</td>
-      <td>29.4</td>
-      <td>16.0</td>
-      <td>27.5</td>
-      <td>16.4</td>
-      <td>23.0</td>
-      <td>4.41</td>
-      <td>5.73</td>
-    </tr>
-    <tr>
-      <th>9</th>
-      <td>2017-09-08</td>
-      <td>Scandia</td>
-      <td>31.9</td>
-      <td>14.5</td>
-      <td>49.7</td>
-      <td>0</td>
-      <td>1.6</td>
-      <td>6.6</td>
-      <td>30.3</td>
-      <td>19.1</td>
-      <td>28.7</td>
-      <td>19.4</td>
-      <td>21.3</td>
-      <td>4.97</td>
-      <td>6.63</td>
-    </tr>
-  </tbody>
-</table>
-</div>
-
-
-
-**Step4: Edit data frame to match format needed**
+**Step5: Edit data frame to match format needed**
 
 
 ```python
@@ -295,17 +108,17 @@ df.info()
 ```
 
     <class 'pandas.core.frame.DataFrame'>
-    Int64Index: 318 entries, 2 to 319
+    Int64Index: 342 entries, 2 to 343
     Data columns (total 4 columns):
-    Date       318 non-null object
-    Station    318 non-null object
-    Tmax       318 non-null object
-    Tmin       318 non-null object
+    Date       342 non-null object
+    Station    342 non-null object
+    Tmax       342 non-null object
+    Tmin       342 non-null object
     dtypes: object(4)
-    memory usage: 12.4+ KB
+    memory usage: 13.4+ KB
 
 
-**Step5: Edit data types**
+**Step6: Edit data types**
 - The data should be in a 'pandas.core.frame.DataFrame'
 - Date should be in datetime64 format
 - Tmax and Tmin should be float64 format
@@ -322,27 +135,155 @@ df.info()
 ```
 
     <class 'pandas.core.frame.DataFrame'>
-    Int64Index: 318 entries, 2 to 319
+    Int64Index: 342 entries, 2 to 343
     Data columns (total 4 columns):
-    Date       318 non-null datetime64[ns]
-    Station    318 non-null object
-    Tmax       318 non-null float64
-    Tmin       318 non-null float64
+    Date       342 non-null datetime64[ns]
+    Station    342 non-null object
+    Tmax       342 non-null float64
+    Tmin       342 non-null float64
     dtypes: datetime64[ns](1), float64(2), object(1)
-    memory usage: 12.4+ KB
+    memory usage: 13.4+ KB
 
 
-**Step6: Set user inputs**
+**Step7: Set user inputs**
 - Set planting date in 'YYYY-MM-DD' form. Make sure it is a string
 - Set harvest date in 'YYYY-MM-DD' form. Make sure it is a string
-- Set your Tbase value in degrees C
+- Set your base/minimum temperatrue (Tbase) value in degrees C
+- Set you optimum temperature (Topt) value in degrees C
+- Set you maximum temperature (Tmax) value in degrees C
+- Set k scale factor, default is 10
 
 
 ```python
 # Define inputs 
-plantDate=np.datetime64('2017-10-10') #set the date your crop was planted
-harvestDate=np.datetime64('2018-04-10') #set the date your crop was planted
+plantDate=np.datetime64('2016-10-10') #set the date your crop was planted
+harvestDate=np.datetime64('2017-09-10') #set the date your crop was planted
 tbase=0 # set the base temperature for your given crop. 
+topt=17
+tmax=31
+k= .5 # scale factor set to a value of 10
+```
+
+**Step 7: Define GDD function**
+- Only uses dates between planting and harvesting
+- Adds Tbase to the dataframe
+- Adds a GDD for each indivudual date
+- Adds a running cumlative total (cum_GDD) for GDD throughout the season
+
+
+```python
+#Define function
+def GDD(df):
+    """
+    Clacluates an individual and cumluative value for GDD for each day in the dataframe
+    
+    Input: Pandas dataframe. Minimum required columns include:
+        T_max= daily maximum temprerature
+        T_min= daily minimum temperatrue
+        Date = date of collection
+        
+    Output: Pandas dataframe. In addition the columns in the dataframe input two additional columns will be clclulated and added:
+        GDD= The growing degree day value for that individual day
+        cum_GDD = The cumlative growing degree day value for all days in the designated growing period.
+    
+    Byron Evers
+    
+    2019-03-06
+    """
+    df = df.drop(df[df.Date < plantDate].index)
+    df = df.drop(df[df.Date > harvestDate].index)
+    df['Tbase']=tbase
+    df['tavg'] =((df.Tmax+df.Tmin)/2)
+    values = np.where(df.tavg < tbase, df.Tbase, df.tavg).astype(float)
+    df['GDD']=(values)-df.Tbase
+    df['cum_GDD'] = df.GDD.cumsum()
+    return df
+```
+
+**Step 8: Define Pdays function**
+- Only uses dates between planting and harvesting
+- Adds a Pday for each indivudual date
+- Adds a running cumlative total (cum_Pdays) for Pdays throughout the season
+
+
+```python
+def Pdays(df):
+    df = df.drop(df[df.Date < plantDate].index)
+    df = df.drop(df[df.Date > harvestDate].index)
+    T1=np.where(df.Tmin > tbase, df.Tmin, 0)
+    T4=np.where(df.Tmax > 30, 30, df.Tmax)
+    T2=((2*T1) + T4)/2
+    T3=((2*T4) + T1)/2
+    T =((df.Tmax+df.Tmin)/2)
+    df['P'] = np.where(T < topt,(k*(1-((T-topt)*2)/((topt-df.Tmin)*2))),99)
+    df['P'] = np.where(T > topt,(k*(1-((T-topt)*2)/((df.Tmax-topt)*2))),df.P)
+    df['P'] = np.where(T < tbase,0,df.P)
+    df['P'] = np.where(T > tmax,0,df.P)
+    df['Pdays']= (1/24)*((5*df.P*T1)+ (8*df.P*T2) + (8*df.P*T3) + (3*df.P*T4))
+    df['cum_Pdays']= df.Pdays.cumsum()
+    return df
+```
+
+**Step 9: Call the function and store as a varable**
+- Call the first 5 items of the data frame to make sure the function worked properly
+
+
+
+```python
+df = GDD(df)
+df =Pdays(df)
+df.head(5)
+df.info()
+
+
+```
+
+    <class 'pandas.core.frame.DataFrame'>
+    Int64Index: 303 entries, 41 to 343
+    Data columns (total 11 columns):
+    Date         303 non-null datetime64[ns]
+    Station      303 non-null object
+    Tmax         303 non-null float64
+    Tmin         303 non-null float64
+    Tbase        303 non-null int64
+    tavg         303 non-null float64
+    GDD          303 non-null float64
+    cum_GDD      303 non-null float64
+    P            303 non-null float64
+    Pdays        303 non-null float64
+    cum_Pdays    303 non-null float64
+    dtypes: datetime64[ns](1), float64(8), int64(1), object(1)
+    memory usage: 28.4+ KB
+
+
+**Step 10: Plot cumlative**
+- Gives visualization to GDD as a tool to ensure the cumlative value never decreases. If it does decrease then either the inputs or the function needs to be adjusted.
+- This can also be used to compare other thermal perameters (Pdays and BMT) as these functions are added and defined. 
+
+
+```python
+#df.set_index('Date', inplace=True)
+```
+
+
+```python
+#df.cum_GDD.plot(title='2017-2018 Cumlative GDD')
+#df.set_index(df.Date, inplace=True)
+plt.plot(df.Date, df.cum_GDD, 'k')
+plt.plot(df.Date, df.cum_Pdays, 'b')
+plt.title('Thermal Time Index Comparison', size=16)
+plt.ylabel('Thermal Time', size=12)
+plt.legend(['GDD','Pdays'])
+plt.show()
+```
+
+
+![png](output_25_0.png)
+
+
+
+```python
+
 ```
 
 
