@@ -293,3 +293,18 @@ plt.savefig('GDDvsPday.png', dpi=2000)
 
 
 <img src="figure2.png" alt="sketch_image" width="600"/>
+
+
+```python
+
+```
+
+
+```python
+
+```
+
+
+```python
+
+```
