@@ -94,7 +94,7 @@ df = pd.read_csv(dirname + filename)
 #df.head(10)
 ```
 
-<img src="mesonetimport.png" alt="sketch_image" width="500"/>
+<img src="mesonetimport.png" alt="sketch_image" width="1600"/>
 
 **Step5: Edit data frame to match format needed**
 
@@ -157,11 +157,11 @@ df.info()
 ```python
 # Define inputs 
 plantDate=np.datetime64('2016-10-10') #set the date your crop was planted
-harvestDate=np.datetime64('2017-09-10') #set the date your crop was planted
-tbase=0 # set the base temperature for your given crop. 
+harvestDate=np.datetime64('2017-06-30') #set the date your crop was planted
+tbase=5 # set the base temperature for your given crop. 
 topt=17
 tmax=31
-k= .5 # scale factor set to a value of 10
+k= .5
 ```
 
 **Step 7: Define GDD function**
@@ -210,12 +210,12 @@ def GDD(df):
 def Pdays(df):
     df = df.drop(df[df.Date < plantDate].index)
     df = df.drop(df[df.Date > harvestDate].index)
-    T1=np.where(df.Tmin > tbase, df.Tmin, 0)
+    T1=np.where(df.Tmin > tbase, df.Tmin, tbase)
     T4=np.where(df.Tmax > 30, 30, df.Tmax)
     T2=((2*T1) + T4)/2
     T3=((2*T4) + T1)/2
     T =((df.Tmax+df.Tmin)/2)
-    df['P'] = np.where(T < topt,(k*(1-((T-topt)*2)/((topt-df.Tmin)*2))),99)
+    df['P'] = np.where(T < topt,(k*(1-((T-topt)*2)/((topt-df.Tmin)*2))),T)
     df['P'] = np.where(T > topt,(k*(1-((T-topt)*2)/((df.Tmax-topt)*2))),df.P)
     df['P'] = np.where(T < tbase,0,df.P)
     df['P'] = np.where(T > tmax,0,df.P)
@@ -231,29 +231,31 @@ def Pdays(df):
 
 ```python
 df = GDD(df)
-df =Pdays(df)
-df.head(5)
+df = Pdays(df)
+# Add stage predictor GDD for reference
+df['Tillering']=420
+df['GrainFill']=1200
 df.info()
-
-
 ```
 
     <class 'pandas.core.frame.DataFrame'>
-    Int64Index: 303 entries, 41 to 343
-    Data columns (total 11 columns):
-    Date         303 non-null datetime64[ns]
-    Station      303 non-null object
-    Tmax         303 non-null float64
-    Tmin         303 non-null float64
-    Tbase        303 non-null int64
-    tavg         303 non-null float64
-    GDD          303 non-null float64
-    cum_GDD      303 non-null float64
-    P            303 non-null float64
-    Pdays        303 non-null float64
-    cum_Pdays    303 non-null float64
-    dtypes: datetime64[ns](1), float64(8), int64(1), object(1)
-    memory usage: 28.4+ KB
+    Int64Index: 264 entries, 41 to 304
+    Data columns (total 13 columns):
+    Date         264 non-null datetime64[ns]
+    Station      264 non-null object
+    Tmax         264 non-null float64
+    Tmin         264 non-null float64
+    Tbase        264 non-null int64
+    tavg         264 non-null float64
+    GDD          264 non-null float64
+    cum_GDD      264 non-null float64
+    P            264 non-null float64
+    Pdays        264 non-null float64
+    cum_Pdays    264 non-null float64
+    Tillering    264 non-null int64
+    GrainFill    264 non-null int64
+    dtypes: datetime64[ns](1), float64(8), int64(3), object(1)
+    memory usage: 28.9+ KB
 
 
 **Step 10: Plot cumlative**
@@ -262,31 +264,32 @@ df.info()
 
 
 ```python
-#df.set_index('Date', inplace=True)
-```
-
-
-```python
-#df.cum_GDD.plot(title='2017-2018 Cumlative GDD')
-#df.set_index(df.Date, inplace=True)
+import matplotlib.dates as mdates
+# plot thermal indices
 plt.plot(df.Date, df.cum_GDD, 'k')
-plt.plot(df.Date, df.cum_Pdays, 'b')
+plt.plot(df.Date, df.cum_Pdays, '--b')
+
+#plot stage prediction lines
+plt.plot(df.Date, df.Tillering, '--y')
+plt.plot(df.Date, df.GrainFill, '--r')
+
+#edit figure
 plt.title('Thermal Time Index Comparison', size=16)
 plt.ylabel('Thermal Time', size=12)
-plt.legend(['GDD','Pdays'])
+plt.legend(['GDD','Pdays','Tillering Est.', 'Grain Fill Est.'])
+plt.autoscale(enable=True, axis='x', tight=True)
+#plt.gca().xaxis.set_major_formatter(mdates.DateFormatter('%m-%d'))
+plt.xticks(rotation=60)
 plt.show()
+plt.savefig('GDDvsPday.png', dpi=2000) 
 ```
 
 
-![png](output_25_0.png)
+![png](output_24_0.png)
 
 
 
-```python
-
-```
+    <Figure size 432x288 with 0 Axes>
 
 
-```python
-
-```
+<img src="figure2.png" alt="sketch_image" width="600"/>
