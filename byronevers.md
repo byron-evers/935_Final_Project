@@ -34,13 +34,16 @@
 2. Merge all of the UAV reflectance data, plot level phenotypic data and the calculated thermal values into one .csv file.
 
 
+<img src="diagram.png" alt="sketch_image" width="1000"/>
+
 <a name="Update_Motivation"></a>
 ## Motivation
-- Poland labs current UAV pipeline includes stitching photos and extracting plot level reflectance data through Agisoft software. 
+- Poland labs current UAV pipeline includes stitching photos and extracting plot level reflectance data through Agisoft software.
+    * 2017 Data is 
 - Data recived from this process is in either an Excel or csv file. 
 - The data set includes reflectance values for 5 indiviual bands (R,G,B,RE and NIR) and 3 vegitative indices (NDVI, NDRE and GNDVI). 
 - Thermal time indices are important for data analysis between years
-- Comparing thermal time indices maybe usefull in plots with diverse germplam
+- Comparing thermal time indices maybe usefull in plots with diverse germplasm
 
 <a name="Update_Equations"></a>
 ## Equations
@@ -54,7 +57,7 @@ $$GDD = \sum_{Planting}^{Harvest}(\frac{Tmax+Tmin}{2})-Tbase$$
 ### Physological Days (Pdays):
 $$Pdays = \frac{1}{24}(5*P(T_1)+8*P(T_2)+8*P(T_3)+3*P(T_4))$$
 **Where**
-* T_1=Tmin
+* $T_1=Tmin$
 * $T_2=\frac{(2*Tmin)+Tmax}{3}$
 * $T_3=\frac{Tmin+(2*Tmax)}{3}$
 * $T_4=Tmax$
@@ -104,11 +107,11 @@ $$*{[d_1(L-b_0) + d_2(L-b_0)^2]}$$
 
 <a name="Update_Road_Blocks"></a>
 ## Road Blocks
-- Pdays how to incorperate two conditions
-    * np.where?
+- Pdays how to incorperate two conditions (ie 5<x<17)
 - Source data and how to incorperate photoperiod 
 - Importing UAV data from Excel particularly multiple tabs
-- Formating UAV data from a table format to a database formate
+- Formating UAV csv data from a table format to a database format
+- Importing all csv files from single working directory and joining them on a common column
 
 <a name="Update_examples"></a>
 ## Examples
@@ -116,6 +119,23 @@ $$*{[d_1(L-b_0) + d_2(L-b_0)^2]}$$
 <a name="Update_inputs"></a>
 ## Mesonet Input
 <img src="mesonetimport.png" alt="sketch_image" width="1600"/>
+
+
+```python
+'''df17.rename(columns={'Timestamp':'Date', 'AirTemperature':'Tmax', 'AirTemperature.1':'Tmin'}, inplace=True)
+df17 = df17.drop((df17.index[:2])) # Drop top lines of non numaric data
+df17 = df17.drop(['RelativeHumidity', 'Precipitation', 'WindSpeed2m','WindSpeed2m.1','SoilTemperature5cm','SoilTemperature5cm.1',
+             'SoilTemperature10cm','SoilTemperature10cm.1','SolarRadiation','ETo','ETo.1'], axis=1)'''
+```
+
+
+
+
+    "df17.rename(columns={'Timestamp':'Date', 'AirTemperature':'Tmax', 'AirTemperature.1':'Tmin'}, inplace=True)\ndf17 = df17.drop((df17.index[:2])) # Drop top lines of non numaric data\ndf17 = df17.drop(['RelativeHumidity', 'Precipitation', 'WindSpeed2m','WindSpeed2m.1','SoilTemperature5cm','SoilTemperature5cm.1',\n             'SoilTemperature10cm','SoilTemperature10cm.1','SolarRadiation','ETo','ETo.1'], axis=1)"
+
+
+
+<img src="clean.png" alt="sketch_image" width="300"/>
 
 <a name="Update_function"></a>
 ## Define GDD Function
@@ -201,3 +221,8 @@ plt.show()'''
     "#size plot\nplt.figure(figsize=(12,14))\n\n\n#plot 2017 Data\nplt.subplot(2,1,2)\nplt.plot(df17.Date,df17.cum_GDD)\nplt.ylabel('GDD', fontsize =24)\nplt.xticks(rotation=60)\n\n#plot 2018 Data\nplt.subplot(2,1,2)\nplt.plot(df18.Date,df18.cum_GDD, 'k')\nplt.ylabel('GDD', fontsize =24)\nplt.xticks(rotation=60)\n\n#plot stage prediction lines\nplt.plot(df17.Date, df17.Tillering, '--y')\nplt.plot(df17.Date, df17.Flower, '--k')\nplt.plot(df17.Date, df17.GrainFill, '--r')\nplt.plot(df18.Date, df18.Tillering, '--y')\nplt.plot(df18.Date, df18.Flower, '--k')\nplt.plot(df18.Date, df18.GrainFill, '--r')\n\n\n# edit plot\nplt.title('GDD Comparison by Year', size=24)\n\nplt.legend(['17-GDD','18-GDD','Tillering Est.','Flowering Est.', 'Grain Fill Est.'], loc=2)\nplt.show()"
 
 
+
+
+```python
+
+```
