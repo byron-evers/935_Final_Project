@@ -22,7 +22,7 @@
     * [GDD Function](#Update_function)
     * [Data Frame Output](#Update_output)
     * [Graph](#Update_graph)
-
+7. [Goals for next update](#goals)
 
 <a name="Update_Objective"></a>
 ## Objective
@@ -538,4 +538,22 @@ plt.show()'''
 
     "#size plot\nplt.figure(figsize=(12,14))\n\n\n#plot 2017 Data\nplt.subplot(2,1,2)\nplt.plot(df17.Date,df17.cum_GDD)\nplt.ylabel('GDD', fontsize =24)\nplt.xticks(rotation=60)\n\n#plot 2018 Data\nplt.subplot(2,1,2)\nplt.plot(df18.Date,df18.cum_GDD, 'k')\nplt.ylabel('GDD', fontsize =24)\nplt.xticks(rotation=60)\n\n#plot stage prediction lines\nplt.plot(df17.Date, df17.Tillering, '--y')\nplt.plot(df17.Date, df17.Flower, '--k')\nplt.plot(df17.Date, df17.GrainFill, '--r')\nplt.plot(df18.Date, df18.Tillering, '--y')\nplt.plot(df18.Date, df18.Flower, '--k')\nplt.plot(df18.Date, df18.GrainFill, '--r')\n\n\n# edit plot\nplt.title('GDD Comparison by Year', size=24)\n\nplt.legend(['17-GDD','18-GDD','Tillering Est.','Flowering Est.', 'Grain Fill Est.'], loc=2)\nplt.show()"
 
+
+
+<a name="goals"></a>
+
+## Goals for next update
+
+1. Define function to calculate Pdays
+2. Find a way to extract photoperiod by day
+3. Import, merge and format UAV csv and xlsx data files
+
+## Goals for final project
+1. Define a function to calculate BMT
+3. Plot all thermal time indicies for comparison across growing seasons
+2. Merge all thermal time indices with UAV data by collection date
+
+## Keep dreaming
+1. Plot indidiviual plots from UTM coordinates
+2. Visualize reflectance indices across plots
 
