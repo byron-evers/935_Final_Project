@@ -25,5 +25,9 @@ Our labs current UAV pipeline includes stitching photos and extracting reflectan
 ## References
 Kyratzis Angelos C., Skarlatos Dimitrios P., Menexes George C., Vamvakousis Vasileios F., Katsiotis Andreas, 2017. Assessment of Vegetation Indices Derived by UAV Imagery for Durum Wheat Phenotyping under a Water Limited and Heat Stressed Mediterranean Environment. Frontiers in Plant Science V.8 P 1114
 
+Miller P, Lanier W, Brandt S (2001) Using Growing Degree Days to Predict Plant Stages, Ag/Extension Communications Coordinator, Communications Services, Montana State University-Bozeman, Bozeman, MO, pp 1-8. Available online: http://msuextension.org/publications/AgandNaturalResources/MT200103AG. pdf
+
+Robertson, G. W. 1968. A biometeorological time scale for a cereal crop involving day and night temperatures and photoperiod. Int. J. Biometeor. 12: 191223.
+
 Saiyed, I., Bullock, P.R., Sapirstein, H.D., Finlay, G.J., Jarvis, C.K., 2009. Thermal time models for estimating wheat phenological development and weather-based relationships to wheat quality. Can. J. Plant Sci. 89, 429–439.
 
